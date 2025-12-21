@@ -156,7 +156,7 @@ class TradingEngine:
             print(F"Current Working Directory is : {getfullpath}")
 
             __master = MasterSymbolFinvasia(getfullpath)
-            # __master.downloadmatserfileusingurl()
+            __master.downloadmasterfile()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(

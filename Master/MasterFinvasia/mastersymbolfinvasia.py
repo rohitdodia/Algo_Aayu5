@@ -33,17 +33,19 @@ class MasterSymbolFinvasia:
         self.__ncx = "https://api.shoonya.com/NCX_symbols.txt.zip"
 
     # 3. Function as Engine to download master symbol file using prepared URLs
-    def downloadmatserfileusingurl(self):
+    def __downloadmatserfileusingurl(self, urladdress):
         """Download master symbol file using prepared URLs."""
-        folderextension = "\\NSE_Symbols.txt.zip"
-
-        # outpath = r"C:\Users\User\Downloads\shoonya_mastersymbols"
-        outpath = self.__actualpath + folderextension
-
         try:
-            with urllib.request.urlopen(self.__nse) as response:
-                with open("NSE_symbols.txt.zip", "wb") as out_file:
-                    out_file.write(response.read(response))
+            folderextension = self.getfileextension(urladdress)
+            if folderextension is None:
+                print("Url input is incorrect or short as expected")
+                return
+
+            outpath = self.__actualpath + "\\" + folderextension
+
+            with urllib.request.urlopen(urladdress) as response:
+                with open(outpath, "wb") as out_file:
+                    out_file.write(response.read())
 
         except (ConnectionError, TimeoutError, OSError) as e:
             print(
@@ -56,3 +58,32 @@ class MasterSymbolFinvasia:
         self.__destinationfolder = "MasterFinvasia"
         self.__actualpath = self.__pathcwd + "\\" + \
             self.__initfolder + "\\" + self.__destinationfolder
+
+    # 5. Function to get file extension from URL
+    def getfileextension(self, urladdress: str):
+        """Get information of file extension from URL"""
+        file_extension = None
+        try:
+            datalist = urladdress.split('/')
+
+            if len(datalist) == 4:
+                file_extension = datalist[3]
+
+        except IndexError as e:
+            print(F"Error generated while extracting file extension: {e}")
+        return file_extension
+
+    # 6. Function to handler different Master file symbol
+    def downloadmasterfile(self):
+        """Get different market segment master file symbols"""
+        try:
+            self.__downloadmatserfileusingurl(self.__nse)
+            self.__downloadmatserfileusingurl(self.__nfo)
+            self.__downloadmatserfileusingurl(self.__cds)
+            self.__downloadmatserfileusingurl(self.__mcx)
+            self.__downloadmatserfileusingurl(self.__bse)
+            self.__downloadmatserfileusingurl(self.__bfo)
+            self.__downloadmatserfileusingurl(self.__ncx)
+        except IndexError as e:
+            print(
+                F"Error generated while processing other segment master file: {e}")
