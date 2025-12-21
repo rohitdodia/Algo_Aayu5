@@ -97,7 +97,7 @@ class InterfaceFinvasia:
     def requesttobroker(self):
         """Function to request data from Finvasia Broker API"""
 
-        if not self.is_connected():  # check connection status
+        if self.is_connected() is False:  # check connection status
             print("Please Connect to broker server first.")
             return  # early return
 
@@ -105,7 +105,7 @@ class InterfaceFinvasia:
     def close_api(self):
         """Function to close API connection to Finvasia Broker"""
         try:
-            if not self.is_connected():
+            if self.is_connected() is False:
                 print("Already Disconnected from Broker API.")
                 return
 
@@ -177,7 +177,7 @@ class InterfaceFinvasia:
             print("Starting Web Socket for Streaming Data from Broker Server...")
 
             # Failback implementation if needed
-            if not self.is_connected():
+            if self.is_connected() is False:
                 print("Web Socket Streaming Connection Failed to Establish.")
                 return None
 
@@ -226,7 +226,7 @@ class InterfaceFinvasia:
     def getcompleteorderbookfrombroker(self):
         """Function to get complete order book from Finvasia Broker API."""
         try:
-            if not self.is_connected():
+            if self.is_connected() is False:
                 print("Connection Failure...Please Connect to broker server first.")
                 return None
 
@@ -247,7 +247,6 @@ class InterfaceFinvasia:
                 f"Error occured while getting order book from broker with Err: {e}")
 
     # 17. Function to get executed (completed) trade book from broker
-
     def getexecutedtradebookfrombroker(self):
         """Function to get complete order book from Finvasia Broker API."""
         try:
@@ -274,3 +273,30 @@ class InterfaceFinvasia:
         except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             print(
                 f"Error occured while getting trade book from broker with Err: {e}")
+
+    # 18. Function to get Net Position (Live) from broker
+    def getnetpositionfrombroker(self):
+        """Function to get net position from Finvasia Broker API."""
+        try:
+            if self.is_connected() is False:
+                print("Connection Failure...Please Connect to broker server first.")
+                return None
+
+            # Successfully connected to broker API
+            getnetposition = self._shoonyapi.get_positions()
+            if getnetposition is None:
+                print("No packet received from broker.")
+                return
+
+            # actual net position
+            print(F"Net Position from Broker API: {getnetposition}")
+            for position in getnetposition:
+                print(F"Position Details: {position}")
+
+            # count of net positions
+            totalpositioncount = len(getnetposition)
+            print(F"Total Net Positions till now: {totalpositioncount}")
+
+        except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
+            print(
+                f"Error occured while getting net position from broker with Err: {e}")

@@ -44,6 +44,7 @@ class TradingEngine:
             self.takenewentry()
             self.requestorderbook()
             self.requestexecutedtradebook()
+            self.requestnetpositionlive()
             self.activatemarketfeed()
         else:
             print("Request to Broker Failed. Not Connected to Broker API.")
@@ -134,3 +135,9 @@ class TradingEngine:
         """Function to request trade book from broker API."""
         print("Requesting Trade Book from Broker...")
         self._shoonyafinvasia.getexecutedtradebookfrombroker()
+
+    # 8. Fundction to request Position book from Broker
+    def requestnetpositionlive(self):
+        """Function to request trade book from broker API."""
+        print("Requesting Trade Book from Broker...")
+        self._shoonyafinvasia.getnetpositionfrombroker()
