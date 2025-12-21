@@ -1,6 +1,7 @@
 """Tradingengine.py Main Trading Engine Module"""
 
 from BrokerAPI.FinvasiaAPI import interfacefinvasia
+from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia
 # from BrokerAPI.FyersAPI import InterfaceFyers
 
 # Trading Engine Class
@@ -141,3 +142,16 @@ class TradingEngine:
         """Function to request trade book from broker API."""
         print("Requesting Trade Book from Broker...")
         self._shoonyafinvasia.getnetpositionfrombroker()
+
+    # 9. Function to download Matser Symbol Database from Broker
+    def activatemastyersymboldownloader(self):
+        """Function to download master symbol database from broker API."""
+        try:
+            print("Processing Master...")
+            print("Please wait while downloading master symbol database...")
+
+            _master = MasterSymbolFinvasia()
+
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
+            print(
+                F"Error Occured while downloading master symbol database... : {e}")
