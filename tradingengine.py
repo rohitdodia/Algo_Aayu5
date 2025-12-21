@@ -1,7 +1,7 @@
 """Tradingengine.py Main Trading Engine Module"""
 
 from BrokerAPI.FinvasiaAPI import interfacefinvasia
-from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia
+from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia, MasterTypeVar
 from Utility.relativepath import Path
 # from BrokerAPI.FyersAPI import InterfaceFyers
 
@@ -156,7 +156,9 @@ class TradingEngine:
             print(F"Current Working Directory is : {getfullpath}")
 
             __master = MasterSymbolFinvasia(getfullpath)
-            __master.downloadmasterfile()
+
+            # filtering capability
+            __master.downloadmasterfile(MasterTypeVar.with_both)
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
