@@ -2,6 +2,7 @@
 
 from BrokerAPI.FinvasiaAPI import interfacefinvasia
 from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia
+from Utility.relativepath import Path
 # from BrokerAPI.FyersAPI import InterfaceFyers
 
 # Trading Engine Class
@@ -14,8 +15,8 @@ class TradingEngine:
     def __init__(self):  # Initialize the trading engine
         print("Welcome to Trading Engine...")
         # Process initialization here
-        self._shoonyafinvasia = interfacefinvasia.InterfaceFinvasia()
-        # self._fyers = InterfaceFyers.InterfaceFyers()
+        self.__shoonyafinvasia = interfacefinvasia.InterfaceFinvasia()
+        # self.__fyers = InterfaceFyers.InterfaceFyers()
 
     # 2. Function to connect to the broker API
     def connecttobroker(self):
@@ -30,14 +31,14 @@ class TradingEngine:
         """
         # Connect to the broker API
         try:
-            self._shoonyafinvasia.login_panel()
+            self.__shoonyafinvasia.login_panel()
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(F"Failed to Connect to Broker API... : {e}")
 
     # 3. Function to start the trading engine
     def startengine(self):
         """Start the engine."""
-        if self._shoonyafinvasia.is_connected() is True:
+        if self.__shoonyafinvasia.is_connected() is True:
             # if self._fyers.is_connected() == True:
             # Do Work Here
             # self._fyers.requesttobroker()
@@ -50,7 +51,7 @@ class TradingEngine:
         else:
             print("Request to Broker Failed. Not Connected to Broker API.")
 
-        self._shoonyafinvasia.close_api()  # Close the API connection
+        self.__shoonyafinvasia.close_api()  # Close the API connection
         # self._fyers.close_api()  # Close the API connection
 
     # 4. Function Take Entruy Signal from Strategy Module
@@ -74,7 +75,7 @@ class TradingEngine:
             bookprofit_price = 0.0
             trail_price = 0.0
 
-            rec_orderid = self._shoonyafinvasia.transmitordertobroker_oms(
+            rec_orderid = self.__shoonyafinvasia.transmitordertobroker_oms(
                 buy_or_sell,
                 product_type,
                 exchange,
@@ -105,12 +106,12 @@ class TradingEngine:
         try:
             print("Getting Market Data...")
             # Implement market data retrieval here
-            self._shoonyafinvasia.startstreamingusingwebsocket()
+            self.__shoonyafinvasia.startstreamingusingwebsocket()
 
             print('Client Dynamic Requirements for Tokens subscription...')
             # example token list
             clientcallinglist = ['NSE|22', 'NSE|3456']
-            self._shoonyafinvasia.subscribetokentobroker(clientcallinglist)
+            self.__shoonyafinvasia.subscribetokentobroker(clientcallinglist)
 
             # waiting Block
             count = 0
@@ -129,28 +130,33 @@ class TradingEngine:
     def requestorderbook(self):
         """Function to request order book from broker API."""
         print("Requesting Order Book from Broker...")
-        self._shoonyafinvasia.getcompleteorderbookfrombroker()
+        self.__shoonyafinvasia.getcompleteorderbookfrombroker()
 
     # 7. Fundction to request trade book from Broker
     def requestexecutedtradebook(self):
         """Function to request trade book from broker API."""
         print("Requesting Trade Book from Broker...")
-        self._shoonyafinvasia.getexecutedtradebookfrombroker()
+        self.__shoonyafinvasia.getexecutedtradebookfrombroker()
 
     # 8. Fundction to request Position book from Broker
     def requestnetpositionlive(self):
         """Function to request trade book from broker API."""
         print("Requesting Trade Book from Broker...")
-        self._shoonyafinvasia.getnetpositionfrombroker()
+        self.__shoonyafinvasia.getnetpositionfrombroker()
 
     # 9. Function to download Matser Symbol Database from Broker
     def activatemastyersymboldownloader(self):
         """Function to download master symbol database from broker API."""
         try:
+
             print("Processing Master...")
             print("Please wait while downloading master symbol database...")
 
-            _master = MasterSymbolFinvasia()
+            getfullpath = Path.getcurrentdirectory()
+            print(F"Current Working Directory is : {getfullpath}")
+
+            __master = MasterSymbolFinvasia(getfullpath)
+            # __master.downloadmatserfileusingurl()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(

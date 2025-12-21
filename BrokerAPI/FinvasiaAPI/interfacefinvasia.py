@@ -14,15 +14,15 @@ class InterfaceFinvasia:
         print("Connecting to Finvasia Broker API...")
         # process initialization here
         # acting as private member
-        self._shoonyapi = ShoonyaApiPy()
-        self._isconnected = False  # connection status flag
-        self._iswebsocketconnected = False  # WebSocket connection status flag
+        self.__shoonyapi = ShoonyaApiPy()
+        self.__isconnected = False  # connection status flag
+        self.__iswebsocketconnected = False  # WebSocket connection status flag
 
     # 2. Function to display login panel
     def login_panel(self):
         """Function to handle login to Finvasia Broker API"""
         # 6 digit code from 2FA app as per broker requirement
-        totp = self._get_totp_factor()
+        totp = self.__get_totp_factor()
 
         if totp == -1:
             print("Login aborted due to TOTP generation error..")
@@ -32,12 +32,12 @@ class InterfaceFinvasia:
         # Converting totp factor from int to string for better readability
         totp = str(totp)
         try:
-            ret = self._shoonyapi.login(userid=CredentialFinvasia.Uid,
-                                        password=CredentialFinvasia.Password,
-                                        twoFA=totp,
-                                        vendor_code=CredentialFinvasia.VendorCode,
-                                        api_secret=CredentialFinvasia.APIKEY,
-                                        imei=CredentialFinvasia.IMEI)
+            ret = self.__shoonyapi.login(userid=CredentialFinvasia.Uid,
+                                         password=CredentialFinvasia.Password,
+                                         twoFA=totp,
+                                         vendor_code=CredentialFinvasia.VendorCode,
+                                         api_secret=CredentialFinvasia.APIKEY,
+                                         imei=CredentialFinvasia.IMEI)
         except (ConnectionError, TimeoutError, OSError, ValueError, KeyError) as e:
             print(f"Exception occurred during broker login: {e}")
             return
@@ -58,12 +58,12 @@ class InterfaceFinvasia:
 
         if stat == "Ok":
             print("Successfully Logged in to Finvasia Broker API")
-            self._sucessfully_connected()
+            self.__sucessfully_connected()
         else:
             print("Login Failed.")
 
     # 3. Function to get TOTP factor for 2FA
-    def _get_totp_factor(self):  # private method to get TOTP factor
+    def __get_totp_factor(self):  # private method to get TOTP factor
         try:  # try block to handle exceptions
             print("Please Enter TOTP (6 digit) Numeric Character")  # prompt user
             result = input()  # get user input and CPU wait for user input
@@ -71,7 +71,7 @@ class InterfaceFinvasia:
             check_length_of_input = len(result)  # check length of input
             if check_length_of_input != 6:  # validate length
                 print("Invalid TOTP Length. It should be 6 digits.")  # log error
-                return self._get_totp_factor()  # recursive call to re-prompt
+                return self.__get_totp_factor()  # recursive call to re-prompt
             result = int(result)  # convert input to integer
 
             return result  # return the entered TOTP
@@ -82,16 +82,16 @@ class InterfaceFinvasia:
             return -1  # indicate failure
 
     # 4. Function Connection Establishment == "OK"
-    def _sucessfully_connected(self):
+    def __sucessfully_connected(self):
         try:
-            self._isconnected = True  # implement connection check logic here
+            self.__isconnected = True  # implement connection check logic here
         except (ConnectionError, OSError) as e:
             print(f"Error in connection establishment: {e}")
 
     # 5. Function to Confirm client about connection status {Ok, NOT OK}
     def is_connected(self):
         """This public method"""
-        return self._isconnected  # False
+        return self.__isconnected  # False
 
     # 6. Function to Requseting Data from broker Server
     def requesttobroker(self):
@@ -109,7 +109,7 @@ class InterfaceFinvasia:
                 print("Already Disconnected from Broker API.")
                 return
 
-            result = self._shoonyapi.logout()  # call logout method from ShoonyaApiPy
+            result = self.__shoonyapi.logout()  # call logout method from ShoonyaApiPy
             if result['stat'] == "Ok":
                 print("Successfully logged out from Broker API.")
             else:
@@ -128,11 +128,11 @@ class InterfaceFinvasia:
             # Transmit order to broker API
             print('sending trader(signla) to broker OMS')
 
-            order_message = self._shoonyapi.place_order(buy_or_sell, product_type, exchange,
-                                                        tradingsymbol, quantity, discloseqty,
-                                                        price_type, price, trigger_price, retention,
-                                                        amo, remarks, bookloss_price,
-                                                        bookprofit_price, trail_price)
+            order_message = self.__shoonyapi.place_order(buy_or_sell, product_type, exchange,
+                                                         tradingsymbol, quantity, discloseqty,
+                                                         price_type, price, trigger_price,
+                                                         retention, amo, remarks, bookloss_price,
+                                                         bookprofit_price, trail_price)
 
             # print(F"Order Transmit Result from Broker API: {order_message}")
 
@@ -155,17 +155,17 @@ class InterfaceFinvasia:
     # TOTP = Run on Thread Pool
 
     # 9. Function used by Broker calling back for order update | CF | NP2U | OWN | ROTP
-    def _event_handler_order_update(self, message):
+    def __event_handler_order_update(self, message):
         print("order event: " + str(message))
 
     # 10. Function used by Broker calling back for quote update | CF | NP2U | OWN | ROTP
-    def _event_handler_quote_update(self, message):
+    def __event_handler_quote_update(self, message):
         print(F"TBT :{str(message)}")
 
     # 11. Function used by Broker calling back when socket is opened | CF | NP2U | OWN | ROTP
-    def _open_callback(self):
+    def __open_callback(self):
         # top priority function to manage websocket connection status
-        self._managewebsocketconnection()
+        self.__managewebsocketconnection()
         brokercallinglist = ['NSE|22', 'NSE|3456']  # example token list
         self.subscribetokentobroker(brokercallinglist)
         # end of callbacks
@@ -182,11 +182,13 @@ class InterfaceFinvasia:
                 return None
 
             # Executing Web Socket Start Function
-            self._shoonyapi.start_websocket(order_update_callback=self._event_handler_order_update,
-                                            subscribe_callback=self._event_handler_quote_update,
-                                            socket_open_callback=self._open_callback,
-                                            socket_close_callback=None,
-                                            socket_error_callback=None)
+            self.__shoonyapi.start_websocket(
+                order_update_callback=self.__event_handler_order_update,
+                subscribe_callback=self.__event_handler_quote_update,
+                socket_open_callback=self.__open_callback,
+                socket_close_callback=None,
+                socket_error_callback=None
+            )
 
             # wait for 5 seconds to ensure connection is established
             time.sleep(5)
@@ -203,15 +205,15 @@ class InterfaceFinvasia:
                 print("Web Socket Connection is not opened. Cannot subscribe tokens.")
                 return
             # This is the costly function as we have to same time, money, speed
-            self._shoonyapi.subscribe(tokenlist)
+            self.__shoonyapi.subscribe(tokenlist)
         except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             print(
                 f"Error occured while subscribing tokens to broker with Err: {e}")
 
     # 14. Function to check Web Socket connection status from broker server
-    def _managewebsocketconnection(self):
+    def __managewebsocketconnection(self):
         try:
-            self._iswebsocketconnected = True
+            self.__iswebsocketconnected = True
         except (ConnectionError, TimeoutError, OSError) as e:
             print(
                 f"Error occured while checking Web Socket connection status with Err: {e}")
@@ -220,7 +222,7 @@ class InterfaceFinvasia:
     # 15. Function allow Trading Engine to know the Web Socket connection status (like Open/Close)
     def iswebsocketconnectionopened(self):
         """Function to check if Web Socket connection is opened."""
-        return self._iswebsocketconnected
+        return self.__iswebsocketconnected
 
     # 16. Function to Get complete Order Book from Broker API
     def getcompleteorderbookfrombroker(self):
@@ -231,7 +233,7 @@ class InterfaceFinvasia:
                 return None
 
             # Successfully connected to broker API
-            getorderbook = self._shoonyapi.get_order_book()
+            getorderbook = self.__shoonyapi.get_order_book()
 
             if getorderbook is None:
                 print("No packet received from broker.")
@@ -256,7 +258,7 @@ class InterfaceFinvasia:
                 return None
 
             # Successfully connected to broker API
-            gettradebook = self._shoonyapi.get_trade_book()
+            gettradebook = self.__shoonyapi.get_trade_book()
 
             if gettradebook is None:
                 print("No packet received from broker.")
@@ -283,7 +285,7 @@ class InterfaceFinvasia:
                 return None
 
             # Successfully connected to broker API
-            getnetposition = self._shoonyapi.get_positions()
+            getnetposition = self.__shoonyapi.get_positions()
             if getnetposition is None:
                 print("No packet received from broker.")
                 return

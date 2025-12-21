@@ -8,5 +8,6 @@ import tradingengine as te
 
 if __name__ == "__main__":  # Main entry point
     handler = te.TradingEngine()
+    handler.activatemastyersymboldownloader()
     handler.connecttobroker()
     handler.startengine()
