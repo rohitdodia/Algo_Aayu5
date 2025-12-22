@@ -4,6 +4,7 @@ import pandas as pd
 from BrokerAPI.FinvasiaAPI import interfacefinvasia
 from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia, MasterTypeVar
 from Utility.relativepath import Path
+import settings
 # from BrokerAPI.FyersAPI import InterfaceFyers
 
 # Trading Engine Class
@@ -160,7 +161,56 @@ class TradingEngine:
 
             self.df_cash = __master.getcashmasterdata()
             self.df_fno = __master.getfnohmasterdata()
+            self.applyinstrumentsfilter()
+            self.subcribe_live_feed()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
                 F"Error Occured while downloading master symbol database... : {e}")
+
+    # 10. Function to filter on the basis of Cluster [EQ, SM, BE etc]
+    def applyinstrumentsfilter(self):
+        """Filter cash master data for EQ Instruments"""
+        try:
+            if self.df_cash is None:
+                raise ValueError("Dataframe is not initiatlize")
+
+            if self.df_cash.empty:
+                raise ValueError("No data in drataframe (Cash)")
+
+            self.df_cash = self.df_cash[(
+                self.df_cash['Instrument'].isin([settings.instrument_list]))]
+            self.df_cash = self.df_cash[(
+                self.df_cash['Symbol'].str.match('^[^0-9]'))]
+            self.df_cash.reset_index(drop=True)
+
+        except ValueError as e:
+            print(F"Pattern matching failed : {e}")
+
+        except KeyError as e:
+            print(F"Column: missing from dataframe:{e}")
+
+    # 11. Function to suscribe to live feeds from the cluster dataframe
+    def subcribe_live_feed(self) -> None:
+        """This function assist to subscribe to live market feeds from dataframe (NSE, BSE, MCX)"""
+        try:
+            if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
+                raise AttributeError(
+                    "This method must be accessed through an instance of the class")
+
+            if (self.df_cash).empty:
+                raise ValueError("No data in cash DataFrame")
+
+            # token_list = self.df_cash['Token'].tolist()
+            # formated_tokenlist = [
+            #    f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
+
+            task_collection = map(
+                self.__shoonyafinvasia.subscribetokentobroker,
+                [f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
+            )
+
+            print(task_collection)
+
+        except (ValueError, KeyError) as e:
+            print(F"Error occured while subscribing to live feeds : {e}")
