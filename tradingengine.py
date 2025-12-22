@@ -46,6 +46,7 @@ class TradingEngine:
             self.requestexecutedtradebook()
             self.requestnetpositionlive()
             self.activatemarketfeed()
+
         else:
             print("Request to Broker Failed. Not Connected to Broker API.")
 
@@ -111,6 +112,8 @@ class TradingEngine:
             clientcallinglist = ['NSE|22', 'NSE|3456']
             self.__shoonyafinvasia.subscribetokentobroker(clientcallinglist)
 
+            self.subcribe_live_feed()
+
             # waiting Block
             count = 0
             while True:  # Infinite Loop to keep the streaming alive
@@ -162,7 +165,7 @@ class TradingEngine:
             self.df_cash = __master.getcashmasterdata()
             self.df_fno = __master.getfnohmasterdata()
             self.applyinstrumentsfilter()
-            self.subcribe_live_feed()
+            # self.subcribe_live_feed()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
@@ -172,17 +175,17 @@ class TradingEngine:
     def applyinstrumentsfilter(self):
         """Filter cash master data for EQ Instruments"""
         try:
-            if self.df_cash is None:
-                raise ValueError("Dataframe is not initiatlize")
+            if self.df_cash is None or self.df_cash.empty:
+                raise ValueError("Cash dataframe is empty or not initiatlized")
 
-            if self.df_cash.empty:
-                raise ValueError("No data in drataframe (Cash)")
+            # Filter by instrument type
+            self.df_cash = self.df_cash[
+                self.df_cash['Instrument'].isin(settings.instrument_list)]
+            # Filter valid equity symbols (optional but safer)
+            self.df_cash = self.df_cash[
+                self.df_cash['Symbol'].str.match('^[^0-9]')]
 
-            self.df_cash = self.df_cash[(
-                self.df_cash['Instrument'].isin([settings.instrument_list]))]
-            self.df_cash = self.df_cash[(
-                self.df_cash['Symbol'].str.match('^[^0-9]'))]
-            self.df_cash.reset_index(drop=True)
+            self.df_cash = self.df_cash.reset_index(drop=True)
 
         except ValueError as e:
             print(F"Pattern matching failed : {e}")
@@ -197,20 +200,63 @@ class TradingEngine:
             if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
                 raise AttributeError(
                     "This method must be accessed through an instance of the class")
-
             if (self.df_cash).empty:
                 raise ValueError("No data in cash DataFrame")
-
-            # token_list = self.df_cash['Token'].tolist()
-            # formated_tokenlist = [
-            #    f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
-
-            task_collection = map(
-                self.__shoonyafinvasia.subscribetokentobroker,
-                [f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
-            )
-
-            print(task_collection)
+            token_list = list(self.df_cash['Token'])
+            formatted_token_list = ["{}|{}".format(
+                'NSE', token) for token in token_list]
+            self.__shoonyafinvasia.subscribetokentobroker(formatted_token_list)
 
         except (ValueError, KeyError) as e:
             print(F"Error occured while subscribing to live feeds : {e}")
+
+    # # 12. Function to filter on the basis of Cluster FNO [EQ, SM, BE etc]
+
+    # def applyinstrumentsfilterfno(self):
+    #     """Filter FNO master data for EQ Instruments"""
+    #     try:
+    #         if self.df_fno is None:
+    #             raise ValueError("Dataframe is not initiatlize")
+
+    #         if self.df_fno.empty:
+    #             raise ValueError("No data in drataframe (Cash)")
+
+    #         self.df_fno = self.df_fno[(
+    #             self.df_fno['Instrument'].isin([settings.instrument_list]))]
+    #         self.df_fno = self.df_fno[(
+    #             self.df_fno['Symbol'].str.match('^[^0-9]'))]
+    #         self.df_fno = self.df_fno.reset_index(drop=True)
+
+    #     except ValueError as e:
+    #         print(F"Pattern matching failed : {e}")
+
+    #     except KeyError as e:
+    #         print(F"Column: missing from dataframe:{e}")
+
+    # # 13. Function to suscribe to live feeds from the cluster dataframe
+    # def subcribe_live_feed_fno(self) -> None:
+    #     """This function to subscribe to FNO live market feeds from dataframe"""
+    #     try:
+    #         if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
+    #             raise AttributeError(
+    #                 "This method must be accessed through an instance of the class")
+
+    #         if (self.df_fno).empty:
+    #             raise ValueError("No data in cash DataFrame")
+
+    #         # token_list = self.df_cash['Token'].tolist()
+    #         # formated_tokenlist = [
+    #         #    f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
+
+    #         # This is one by One streaming approach
+    #         # task_collection = list(map(
+    #         #    self.__shoonyafinvasia.subscribetokentobroker,
+    #         #    [f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
+    #         # ))
+
+    #         # This is bulk token streaming approach
+    #         self.__shoonyafinvasia.subscribetokentobroker(
+    #             [f"NFO|,{token}" for token in self.df_fno['Token'].tolist()])
+
+    #     except (ValueError, KeyError) as e:
+    #         print(F"Error occured while subscribing to live feeds : {e}")

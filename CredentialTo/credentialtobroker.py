@@ -4,11 +4,11 @@
 class CredentialFinvasia:
     """Shoonya Finvasia API Credentials"""
 
-    VendorCode = "DDIPS7674J_U"
+    VendorCode = "FN175412_U"
     IMEI = "abc1234"
-    APIKEY = "96c9f687f6b479139965247a79bfb738"
-    Uid = "DDIPS7674J"
-    Password = "Rohitd84"
+    APIKEY = "87bd0e9ba9fbe83ec81f85caaa4d86fc"
+    Uid = "FN175412"
+    Password = "Rohitd@84"
 
 
 class CredentialFyers:

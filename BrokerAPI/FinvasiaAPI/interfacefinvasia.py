@@ -160,13 +160,44 @@ class InterfaceFinvasia:
 
     # 10. Function used by Broker calling back for quote update | CF | NP2U | OWN | ROTP
     def __event_handler_quote_update(self, message):
-        print(F"TBT :{str(message)}")
+        try:
+            # TBT :{ 't': 'tf', 'e': 'NSE', 'tk': '22', 'lp': '2324.85', 'pc': '-1.01', 'ft': ...'}
+            ltp = 0
+            open = 0
+            high = 0
+            low = 0
+            close = 0
+
+            if 'lp' in message:
+                ltp = float(message['lp'])
+
+            token = message['tk']
+
+            # OHLC
+            if 'o' in message:
+                open = float(message['o'])
+
+            if 'h' in message:
+                high = float(message['h'])
+
+            if 'l' in message:
+                low = float(message['l'])
+
+            if 'c' in message:
+                close = float(message['c'])
+
+            if ltp > open:
+                print(F"BUY tk : {token}, ltp {ltp}")
+
+        except KeyError as e:
+            print(F"Key Error : {e}")
 
     # 11. Function used by Broker calling back when socket is opened | CF | NP2U | OWN | ROTP
     def __open_callback(self):
         # top priority function to manage websocket connection status
         self.__managewebsocketconnection()
-        brokercallinglist = ['NSE|22', 'NSE|3456']  # example token list
+        # brokercallinglist = ['NSE|22', 'NSE|3456']  # example token list
+        brokercallinglist = []
         self.subscribetokentobroker(brokercallinglist)
         # end of callbacks
 
@@ -204,8 +235,16 @@ class InterfaceFinvasia:
             if self.iswebsocketconnectionopened() is False:
                 print("Web Socket Connection is not opened. Cannot subscribe tokens.")
                 return
-            # This is the costly function as we have to same time, money, speed
-            self.__shoonyapi.subscribe(tokenlist)
+
+            if isinstance(tokenlist, list):
+                # handle this function to List collection
+                print("Bulk Subscribe to Broker")
+                self.__shoonyapi.subscribe(tokenlist)
+            else:
+                # This is the costly function as we have to same time, money, speed
+                print("One by One Subscribe to Broker")
+                self.__shoonyapi.subscribe(tokenlist)
+
         except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             print(
                 f"Error occured while subscribing tokens to broker with Err: {e}")

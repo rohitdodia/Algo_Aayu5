@@ -189,7 +189,7 @@ class MasterSymbolFinvasia:
 
         except (FileNotFoundError, pd.errors.EmptyDataError) as e:
             print(
-                F"Error occured while reading file from localm with err: {e}")
+                F"Error occured while reading file from locals with err: {e}")
 
     # 9. Function read F&O Master text file
     def __fnomasteronly(self):
