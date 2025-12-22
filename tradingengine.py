@@ -159,6 +159,7 @@ class TradingEngine:
 
             # filtering capability
             __master.downloadmasterfile(MasterTypeVar.with_both)
+            __master.loadallmastertextfile(str(MasterTypeVar.with_both))
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
