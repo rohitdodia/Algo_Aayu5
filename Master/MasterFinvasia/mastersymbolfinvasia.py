@@ -38,7 +38,6 @@ class MasterSymbolFinvasia:
         self.__df_fno = None
 
     # 2. Function to prepare URLs with destination paths
-
     def __prepareurls(self):
         """Prepare URLs for downloading master symbol data."""
         self.__nse = "https://api.shoonya.com/NSE_symbols.txt.zip"
@@ -217,3 +216,13 @@ class MasterSymbolFinvasia:
             print(f"Cash file not found: {e}")
         except pd.errors.EmptyDataError as e:
             print(f"Cash file is empty: {e}")
+
+    # 11. Function to send cash data
+    def getcashmasterdata(self):
+        """creating global function to expose the cash data to external class"""
+        return self.__df_cash
+
+    # 12. Function to send FNO data
+    def getfnohmasterdata(self):
+        """creating global function to expose the F&O data to external class"""
+        return self.__df_fno

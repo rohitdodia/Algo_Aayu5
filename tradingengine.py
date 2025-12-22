@@ -1,4 +1,5 @@
 """Tradingengine.py Main Trading Engine Module"""
+import pandas as pd
 
 from BrokerAPI.FinvasiaAPI import interfacefinvasia
 from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia, MasterTypeVar
@@ -18,17 +19,13 @@ class TradingEngine:
         self.__shoonyafinvasia = interfacefinvasia.InterfaceFinvasia()
         # self.__fyers = InterfaceFyers.InterfaceFyers()
 
+        self.df_cash = pd.DataFrame()
+        self.df_fno = pd.DataFrame()
+
     # 2. Function to connect to the broker API
+
     def connecttobroker(self):
-        """
-        Establish a connection to the broker API.
-
-        Attempts to open the login panel for the Shoonya Finvasia broker.
-        Catches and prints any exceptions that occur during the connection process.
-
-        Raises:
-            Exception: Any exception raised during broker login is caught and printed.
-        """
+        """Establish a connection to the broker API."""
         # Connect to the broker API
         try:
             self.__shoonyafinvasia.login_panel()
@@ -160,6 +157,9 @@ class TradingEngine:
             # filtering capability
             __master.downloadmasterfile(MasterTypeVar.with_both)
             __master.loadallmastertextfile(str(MasterTypeVar.with_both))
+
+            self.df_cash = __master.getcashmasterdata()
+            self.df_fno = __master.getfnohmasterdata()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
