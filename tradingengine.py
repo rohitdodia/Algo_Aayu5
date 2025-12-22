@@ -166,6 +166,7 @@ class TradingEngine:
             self.df_fno = __master.getfnohmasterdata()
             self.applyinstrumentsfilter()
             # self.subcribe_live_feed()
+            self.applyinstrumentsfilterfno()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
@@ -210,28 +211,27 @@ class TradingEngine:
         except (ValueError, KeyError) as e:
             print(F"Error occured while subscribing to live feeds : {e}")
 
-    # # 12. Function to filter on the basis of Cluster FNO [EQ, SM, BE etc]
+    # 12. Function to filter on the basis of Cluster FNO [EQ, SM, BE etc]
+    def applyinstrumentsfilterfno(self):
+        """Filter FNO master data for EQ Instruments"""
+        try:
+            if self.df_fno is None or self.df_fno.empty:
+                raise ValueError("F&O dataframe is empty or not initiatlized")
 
-    # def applyinstrumentsfilterfno(self):
-    #     """Filter FNO master data for EQ Instruments"""
-    #     try:
-    #         if self.df_fno is None:
-    #             raise ValueError("Dataframe is not initiatlize")
+            # Filter by instrument type
+            self.df_fno = self.df_fno[
+                self.df_fno['Symbol'].isin(settings.future_optionlist)]
+            # Filter on expiry (optional but safer)
+            self.df_fno = self.df_fno[
+                self.df_fno['Expiry'].isin(settings.expiry_list)]
+            # rest index from 0 again
+            self.df_fno = self.df_fno.reset_index(drop=True)
 
-    #         if self.df_fno.empty:
-    #             raise ValueError("No data in drataframe (Cash)")
+        except ValueError as e:
+            print(F"Pattern matching failed : {e}")
 
-    #         self.df_fno = self.df_fno[(
-    #             self.df_fno['Instrument'].isin([settings.instrument_list]))]
-    #         self.df_fno = self.df_fno[(
-    #             self.df_fno['Symbol'].str.match('^[^0-9]'))]
-    #         self.df_fno = self.df_fno.reset_index(drop=True)
-
-    #     except ValueError as e:
-    #         print(F"Pattern matching failed : {e}")
-
-    #     except KeyError as e:
-    #         print(F"Column: missing from dataframe:{e}")
+        except KeyError as e:
+            print(F"Column: missing from dataframe:{e}")
 
     # # 13. Function to suscribe to live feeds from the cluster dataframe
     # def subcribe_live_feed_fno(self) -> None:

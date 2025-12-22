@@ -163,10 +163,10 @@ class InterfaceFinvasia:
         try:
             # TBT :{ 't': 'tf', 'e': 'NSE', 'tk': '22', 'lp': '2324.85', 'pc': '-1.01', 'ft': ...'}
             ltp = 0
-            open = 0
-            high = 0
-            low = 0
-            close = 0
+            open_price = 0
+            high_price = 0
+            low_price = 0
+            close_price = 0
 
             if 'lp' in message:
                 ltp = float(message['lp'])
@@ -175,19 +175,21 @@ class InterfaceFinvasia:
 
             # OHLC
             if 'o' in message:
-                open = float(message['o'])
+                open_price = float(message['o'])
 
             if 'h' in message:
-                high = float(message['h'])
+                high_price = float(message['h'])
 
             if 'l' in message:
-                low = float(message['l'])
+                low_price = float(message['l'])
 
             if 'c' in message:
-                close = float(message['c'])
+                close_price = float(message['c'])
 
-            if ltp > open:
-                print(F"BUY tk : {token}, ltp {ltp}")
+            if ltp > open_price and ltp > (open_price + high_price + low_price + close_price)/4:
+                print(F"BUY Signal : {token}, ltp {ltp}")
+            elif ltp < open_price and ltp < (open_price + high_price + low_price + close_price)/4:
+                print(F"SELL Signal : {token}, ltp {ltp}")
 
         except KeyError as e:
             print(F"Key Error : {e}")
