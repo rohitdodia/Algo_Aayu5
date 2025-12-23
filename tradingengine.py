@@ -164,10 +164,11 @@ class TradingEngine:
             __master.loadallmastertextfile(str(MasterTypeVar.with_both))
 
             self.df_cash = __master.getcashmasterdata()
-            self.df_fno = __master.getfnohmasterdata()
+            self.df_fno = __master.getfnomasterdata()
+
             self.applyinstrumentsfilter_cash()
-            # self.subcribe_live_feed()
             self.applyinstrumentsfilter_fno()
+            # self.subcribe_live_feed()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
@@ -183,6 +184,7 @@ class TradingEngine:
             # Filter by instrument type
             self.df_cash = self.df_cash[
                 self.df_cash['Instrument'].isin(settings.instrument_list)]
+
             # Filter valid equity symbols (optional but safer)
             self.df_cash = self.df_cash[
                 self.df_cash['Symbol'].str.match('^[^0-9]')]
@@ -213,7 +215,7 @@ class TradingEngine:
         except (ValueError, KeyError) as e:
             print(F"Error occured while subscribing to live feeds : {e}")
 
-    # 12. Function to filter on the basis of Cluster FNO [EQ, SM, BE etc]
+    # 12. Function to filter on the basis of Cluster Option
     def applyinstrumentsfilter_fno(self):
         """Filter FNO master data for EQ Instruments"""
         try:
@@ -221,8 +223,24 @@ class TradingEngine:
                 raise ValueError("F&O dataframe is empty or not initiatlized")
 
             # Filter by instrument type
+            option = ['CE', 'PE']
+
+            # Include Trading Symbol for Future list
+            future = ['XX']
+
+            # combining both Option and Future data
             self.df_fno = self.df_fno[
-                self.df_fno['Symbol'].isin(settings.future_optionlist)]
+                (
+                    self.df_fno['Symbol'].isin(settings.option_list) &
+                    self.df_fno['OptionType'].isin(option)
+                )
+                |
+                (
+                    self.df_fno['Symbol'].isin(settings.future_list) &
+                    self.df_fno['OptionType'].isin(future)
+                )
+            ]
+
             # Filter on expiry (optional but safer)
             self.df_fno = self.df_fno[
                 self.df_fno['Expiry'].isin(settings.expiry_list)]

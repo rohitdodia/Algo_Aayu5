@@ -2,8 +2,9 @@
 
 instrument_list = ['EQ', 'INDEX']
 
-future_optionlist = ['NIFTY']
+option_list = ['NIFTY']
+future_list = ['NIFTY']
 
-# DD-MM-YYYY
+# DD-Mmm-YYYY
 expiry_list = ['23-Dec-25', '30-Dec-25', '06-Jan-26',
                '13-Jan-26', '20-Jan-26', '27-Jan-26']

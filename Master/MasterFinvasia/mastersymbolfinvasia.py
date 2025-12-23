@@ -223,6 +223,6 @@ class MasterSymbolFinvasia:
         return self.__df_cash
 
     # 12. Function to send FNO data
-    def getfnohmasterdata(self):
+    def getfnomasterdata(self):
         """creating global function to expose the F&O data to external class"""
         return self.__df_fno
