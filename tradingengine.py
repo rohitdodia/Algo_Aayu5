@@ -112,7 +112,8 @@ class TradingEngine:
             clientcallinglist = ['NSE|22', 'NSE|3456']
             self.__shoonyafinvasia.subscribetokentobroker(clientcallinglist)
 
-            self.subcribe_live_feed()
+            self.subcribe_live_feed_cash()
+            self.subcribe_live_feed_fno()
 
             # waiting Block
             count = 0
@@ -164,16 +165,16 @@ class TradingEngine:
 
             self.df_cash = __master.getcashmasterdata()
             self.df_fno = __master.getfnohmasterdata()
-            self.applyinstrumentsfilter()
+            self.applyinstrumentsfilter_cash()
             # self.subcribe_live_feed()
-            self.applyinstrumentsfilterfno()
+            self.applyinstrumentsfilter_fno()
 
         except (ConnectionError, TimeoutError, RuntimeError) as e:
             print(
                 F"Error Occured while downloading master symbol database... : {e}")
 
     # 10. Function to filter on the basis of Cluster [EQ, SM, BE etc]
-    def applyinstrumentsfilter(self):
+    def applyinstrumentsfilter_cash(self):
         """Filter cash master data for EQ Instruments"""
         try:
             if self.df_cash is None or self.df_cash.empty:
@@ -195,7 +196,7 @@ class TradingEngine:
             print(F"Column: missing from dataframe:{e}")
 
     # 11. Function to suscribe to live feeds from the cluster dataframe
-    def subcribe_live_feed(self) -> None:
+    def subcribe_live_feed_cash(self) -> None:
         """This function assist to subscribe to live market feeds from dataframe (NSE, BSE, MCX)"""
         try:
             if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
@@ -206,13 +207,14 @@ class TradingEngine:
             token_list = list(self.df_cash['Token'])
             formatted_token_list = ["{}|{}".format(
                 'NSE', token) for token in token_list]
+
             self.__shoonyafinvasia.subscribetokentobroker(formatted_token_list)
 
         except (ValueError, KeyError) as e:
             print(F"Error occured while subscribing to live feeds : {e}")
 
     # 12. Function to filter on the basis of Cluster FNO [EQ, SM, BE etc]
-    def applyinstrumentsfilterfno(self):
+    def applyinstrumentsfilter_fno(self):
         """Filter FNO master data for EQ Instruments"""
         try:
             if self.df_fno is None or self.df_fno.empty:
@@ -233,30 +235,25 @@ class TradingEngine:
         except KeyError as e:
             print(F"Column: missing from dataframe:{e}")
 
-    # # 13. Function to suscribe to live feeds from the cluster dataframe
-    # def subcribe_live_feed_fno(self) -> None:
-    #     """This function to subscribe to FNO live market feeds from dataframe"""
-    #     try:
-    #         if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
-    #             raise AttributeError(
-    #                 "This method must be accessed through an instance of the class")
+    # 13. Function to suscribe to live feeds from the cluster dataframe
+    def subcribe_live_feed_fno(self) -> None:
+        """Subscribe to FNO live market feeds from Cluster dataframe"""
+        try:
+            if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
+                raise AttributeError(
+                    "This method must be accessed through an instance of the class")
 
-    #         if (self.df_fno).empty:
-    #             raise ValueError("No data in cash DataFrame")
+            if (self.df_fno).empty:
+                raise ValueError("No data in F&O DataFrame")
 
-    #         # token_list = self.df_cash['Token'].tolist()
-    #         # formated_tokenlist = [
-    #         #    f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
+            token_list = list(self.df_fno['Token'])
+            formatted_token_list = ["{}|{}".format(
+                'NFO', token) for token in token_list]
 
-    #         # This is one by One streaming approach
-    #         # task_collection = list(map(
-    #         #    self.__shoonyafinvasia.subscribetokentobroker,
-    #         #    [f"NSE|,{token}" for token in self.df_cash['Token'].tolist()]
-    #         # ))
+            # This is bulk token streaming approach
+            self.__shoonyafinvasia.subscribetokentobroker(formatted_token_list)
+            # self.__shoonyafinvasia.subscribetokentobroker(
+            #     [f"NFO|,{token}" for token in self.df_fno['Token'].tolist()])
 
-    #         # This is bulk token streaming approach
-    #         self.__shoonyafinvasia.subscribetokentobroker(
-    #             [f"NFO|,{token}" for token in self.df_fno['Token'].tolist()])
-
-    #     except (ValueError, KeyError) as e:
-    #         print(F"Error occured while subscribing to live feeds : {e}")
+        except (ValueError, KeyError) as e:
+            print(F"Error occured while subscribing to live feeds : {e}")
