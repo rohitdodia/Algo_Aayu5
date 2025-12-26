@@ -1,6 +1,7 @@
 """interfacefinvasia.py - Interface module for Finvasia Broker API interaction."""
 
-import time
+# import time
+import pandas as pd
 
 from BrokerAPI.FinvasiaAPI.api_helper import ShoonyaApiPy
 from CredentialTo.credentialtobroker import CredentialFinvasia
@@ -15,10 +16,23 @@ class InterfaceFinvasia:
         # process initialization here
         # acting as private member
         self.__shoonyapi = ShoonyaApiPy()
-        self.__isconnected = False  # connection status flag
+        self.__isconnected = False  # Broker login state
         self.__iswebsocketconnected = False  # WebSocket connection status flag
+        self.__set_up_feed()
 
-    # 2. Function to display login panel
+    # 2. Function to setup dataframe to store feeds
+    # self=<BrokerAPI.FinvasiaAPI.interfacefinvasia.InterfaceFinvasia object at 0x000001B0BE052F90>
+    def __set_up_feed(self):
+        # feed_col = ['Token', 'TradingSymbol', 'Open',
+        #             'High', 'Low', 'Close', 'Ltp', 'Vol']
+        # self.df_feed = pd.DataFrame(columns=feed_col)
+        feed_col = ['TradingSymbol', 'Open',
+                    'High', 'Low', 'Close', 'Ltp', 'Vol']
+        self.df_feed = pd.DataFrame(columns=feed_col)
+        self.df_feed.index.name = 'Token'
+
+    # 3. Function to display login panel
+
     def login_panel(self):
         """Function to handle login to Finvasia Broker API"""
         # 6 digit code from 2FA app as per broker requirement
@@ -62,7 +76,7 @@ class InterfaceFinvasia:
         else:
             print("Login Failed.")
 
-    # 3. Function to get TOTP factor for 2FA
+    # 4. Function to get TOTP factor for 2FA
     def __get_totp_factor(self):  # private method to get TOTP factor
         try:  # try block to handle exceptions
             print("Please Enter TOTP (6 digit) Numeric Character")  # prompt user
@@ -81,19 +95,19 @@ class InterfaceFinvasia:
             print("Error in generating TOTP factor: Invalid input provided")
             return -1  # indicate failure
 
-    # 4. Function Connection Establishment == "OK"
+    # 5. Function Connection Establishment == "OK"
     def __sucessfully_connected(self):
         try:
             self.__isconnected = True  # implement connection check logic here
         except (ConnectionError, OSError) as e:
             print(f"Error in connection establishment: {e}")
 
-    # 5. Function to Confirm client about connection status {Ok, NOT OK}
+    # 6. Function to Confirm client about connection status {Ok, NOT OK}
     def is_connected(self):
         """This public method"""
         return self.__isconnected  # False
 
-    # 6. Function to Requseting Data from broker Server
+    # 7. Function to Requseting Data from broker Server
     def requesttobroker(self):
         """Function to request data from Finvasia Broker API"""
 
@@ -101,7 +115,7 @@ class InterfaceFinvasia:
             print("Please Connect to broker server first.")
             return  # early return
 
-    # 7. Function to close connection forecefully - Logout
+    # 8. Function to close connection forecefully - Logout
     def close_api(self):
         """Function to close API connection to Finvasia Broker"""
         try:
@@ -117,15 +131,17 @@ class InterfaceFinvasia:
         except (ConnectionError, TimeoutError, OSError, KeyError) as e:
             print(f"Error in logging out: {e}")
 
-    # 8. Function to Transmit Order to Broker API
+    # 9. Function to Transmit Order to Broker API
     def transmitordertobroker_oms(self, buy_or_sell, product_type, exchange,
                                   tradingsymbol, quantity, discloseqty,
                                   price_type, price, trigger_price, retention,
                                   amo, remarks, bookloss_price,
                                   bookprofit_price, trail_price):
-        """Function to transmit order to Finvasia Broker API OMS"""
+        """
+        Transmit order to Finvasia OMS with validation
+        """
         try:
-            # Transmit order to broker API
+            # 🚨 VALIDATION BLOCK Transmit order to broker API
             print('sending trader(signla) to broker OMS')
 
             order_message = self.__shoonyapi.place_order(buy_or_sell, product_type, exchange,
@@ -154,83 +170,166 @@ class InterfaceFinvasia:
     # OWN = Ownership of Calling is with Broker Server
     # TOTP = Run on Thread Pool
 
-    # 9. Function used by Broker calling back for order update | CF | NP2U | OWN | ROTP
+    # 10. Function used by Broker calling back for order update | CF | NP2U | OWN | ROTP
     def __event_handler_order_update(self, message):
         print("order event: " + str(message))
 
-    # 10. Function used by Broker calling back for quote update | CF | NP2U | OWN | ROTP
+    # 11. Function used by Broker calling back for quote update | CF | NP2U | OWN | ROTP
     def __event_handler_quote_update(self, message):
+        """Handle broker quote updates safely without FutureWarning"""
         try:
             # TBT :{ 't': 'tf', 'e': 'NSE', 'tk': '22', 'lp': '2324.85', 'pc': '-1.01', 'ft': ...'}
-            ltp = 0
-            open_price = 0
-            high_price = 0
-            low_price = 0
-            close_price = 0
-
-            if 'lp' in message:
-                ltp = float(message['lp'])
-
             token = message['tk']
 
-            # OHLC
-            if 'o' in message:
-                open_price = float(message['o'])
+            # Extract & convert values safely
+            def get_float(key):
+                return float(message[key]) if key in message else None
 
-            if 'h' in message:
-                high_price = float(message['h'])
+            ltp = get_float('lp')
+            op_pre = get_float('o')
+            hi_pre = get_float('h')
+            lw_pre = get_float('l')
+            cl_pre = get_float('c')
+            vol = get_float('v')
 
-            if 'l' in message:
-                low_price = float(message['l'])
+            # 🔴 Skip incomplete ticks
+            if None in (ltp, op_pre, hi_pre, lw_pre, cl_pre):
+                return   # skip incomplete tick safely
 
-            if 'c' in message:
-                close_price = float(message['c'])
+            # volume = 1  # tick volume
 
-            if ltp > open_price and ltp > (open_price + high_price + low_price + close_price)/4:
-                print(F"BUY Signal : {token}, ltp {ltp}")
-            elif ltp < open_price and ltp < (open_price + high_price + low_price + close_price)/4:
-                print(F"SELL Signal : {token}, ltp {ltp}")
+            # 🔴 -------- EXPLICIT INSERT / UPDATE --------
+            is_new = token not in self.df_feed.index
+
+            if is_new:
+                # INSERT
+                self.df_feed.loc[token] = pd.Series({
+                    'TradingSymbol': 'NA',  # TradingSymbol
+                    'Open': op_pre,          # Open
+                    'High': hi_pre,          # High
+                    'Low': lw_pre,           # Low
+                    'Close': cl_pre,         # Close
+                    'Ltp': ltp,              # Ltp
+                    'Vol': vol               # Volume
+                }, name=token)
+            else:
+                # UPDATE: Existing Token
+                # .loc for updating multiple columns.
+                self.df_feed.loc[token, [
+                    'Open', 'High', 'Low', 'Close', 'Ltp'
+                ]] = [
+                    op_pre, hi_pre, lw_pre, cl_pre, ltp
+                ]
+                # .at only works for a single cell, not multiple columns at once.
+                self.df_feed.at[token, 'Vol'] += vol
+
+                # self.df_feed.loc[token, 'Vol'] += volume
+
+            # Insert function - if Key (Token) Absent
+            # if token not in self.df_feed['Token'].values:
+            #     nw_recd = {'Token': token, 'TradingSymbol': 'NA', 'Open': op_pre,
+            #                'High': hi_pre, 'Low': lw_pre, 'Close': cl_pre, 'Ltp': ltp, 'Vol': vol}
+            #     self.df_feed = self.df_feed.append(nw_recd, ignore_index=True)
+
+            # else:  # Update function - if key is present
+            #     # print('Code entered to block part')
+            #     self.df_feed.loc[self.df_feed['Token'] == token, [
+            #         'Open', 'High', 'Low', 'Close', 'Ltp', 'Vol']] = [op_pre, hi_pre, lw_pre, cl_pre, ltp, vol]
+
+                # # ONE unified insert/update operation
+            # self.df_feed.loc[token, [
+            #     'TradingSymbol',
+            #     'Open',
+            #     'High',
+            #     'Low',
+            #     'Close',
+            #     'Ltp',
+            #     'Vol'
+            # ]] = [
+            #     self.df_feed.loc[token, 'TradingSymbol']
+            #     if token in self.df_feed.index else 'NA',
+            #     op_pre,
+            #     hi_pre,
+            #     lw_pre,
+            #     cl_pre,
+            #     ltp,
+            #     self.df_feed.loc[token, 'Vol'] + volume
+            #     if token in self.df_feed.index else volume
+            # ]
 
         except KeyError as e:
-            print(F"Key Error : {e}")
+            print(f"Key Error: {e}")
+        except ValueError as e:
+            print(f"Value Error: {e}")
 
-    # 11. Function used by Broker calling back when socket is opened | CF | NP2U | OWN | ROTP
+        # print(self.df_feed.tail(3))
+
+    # 12. Function used by Broker calling back when socket is opened | CF | NP2U | OWN | ROTP
     def __open_callback(self):
+        """🔹 Socket Open (Broker-owned callback)"""
+        print("🔌 WebSocket opened")
+
+        # self.ws_started = True
+
         # top priority function to manage websocket connection status
-        self.__managewebsocketconnection()
-        # brokercallinglist = ['NSE|22', 'NSE|3456']  # example token list
+        self.__iswebsocketconnected = True
+
+        # Initial subscriptions (if any) brokercallinglist = ['NSE|22', 'NSE|3456']  # example token list
         brokercallinglist = []
-        self.subscribetokentobroker(brokercallinglist)
+        if brokercallinglist:
+            self.subscribetokentobroker(brokercallinglist)
         # end of callbacks
 
-    # 12. Function from client to streaming data from broker server
-    def startstreamingusingwebsocket(self) -> None:
-        """Function to start Web Socket for streaming data from Finvasia Broker API."""
-        try:
-            print("Starting Web Socket for Streaming Data from Broker Server...")
+    # 13. Function from client to streaming data from broker server
 
-            # Failback implementation if needed
-            if self.is_connected() is False:
-                print("Web Socket Streaming Connection Failed to Establish.")
+    def startstreamingusingwebsocket(self):
+        """
+        Start WebSocket streaming safely.
+        Prevents multiple WebSocket connections.
+        """
+        try:
+            # ❌ Broker not connected → do nothing
+            if self.is_connected() is False:  # False
+                print(
+                    "❌ Web Socket Streaming Connection Failed to Establish. Broker not connected.")
                 return None
 
+            # ❌ WebSocket already open
+            if self.__iswebsocketconnected:
+                print("⚠ WebSocket already connected.")
+                return
+
+            print("Starting Web Socket for Streaming Data from Broker Server...")
             # Executing Web Socket Start Function
             self.__shoonyapi.start_websocket(
                 order_update_callback=self.__event_handler_order_update,
                 subscribe_callback=self.__event_handler_quote_update,
                 socket_open_callback=self.__open_callback,
-                socket_close_callback=None,
-                socket_error_callback=None
+                socket_close_callback=self.__close_callback,
+                socket_error_callback=self.__error_callback
             )
 
+            print("WebSocket start request sent to broker.")
             # wait for 5 seconds to ensure connection is established
-            time.sleep(5)
+            # time.sleep(5)
 
             print("Streaming Request Completed from Broker Server.")
+
         except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
             print(f"Error occured while starting Web Socket with Err: {e}")
 
-    # 13. Function from client to Dynamic request data from broker server and Main Thread + ROTP
+    def __close_callback(self):
+        """🔹 Socket Close"""
+        print("🔌 WebSocket closed")
+        self.__iswebsocketconnected = False
+
+    def __error_callback(self, error):
+        """🔹 Socket Error"""
+        print(f"❌ WebSocket error: {error}")
+        self.__iswebsocketconnected = False
+
+    # 14. Function from client to Dynamic request data from broker server and Main Thread + ROTP
+
     def subscribetokentobroker(self, tokenlist):
         """Function to subscribe tokens to Finvasia Broker API for market data."""
         try:
@@ -251,7 +350,7 @@ class InterfaceFinvasia:
             print(
                 f"Error occured while subscribing tokens to broker with Err: {e}")
 
-    # 14. Function to check Web Socket connection status from broker server
+    # 15. Function to check Web Socket connection status from broker server
     def __managewebsocketconnection(self):
         try:
             self.__iswebsocketconnected = True
@@ -260,12 +359,12 @@ class InterfaceFinvasia:
                 f"Error occured while checking Web Socket connection status with Err: {e}")
             return False
 
-    # 15. Function allow Trading Engine to know the Web Socket connection status (like Open/Close)
+    # 16. Function allow Trading Engine to know the Web Socket connection status (like Open/Close)
     def iswebsocketconnectionopened(self):
         """Function to check if Web Socket connection is opened."""
         return self.__iswebsocketconnected
 
-    # 16. Function to Get complete Order Book from Broker API
+    # 17. Function to Get complete Order Book from Broker API
     def getcompleteorderbookfrombroker(self):
         """Function to get complete order book from Finvasia Broker API."""
         try:
@@ -289,7 +388,7 @@ class InterfaceFinvasia:
             print(
                 f"Error occured while getting order book from broker with Err: {e}")
 
-    # 17. Function to get executed (completed) trade book from broker
+    # 18. Function to get executed (completed) trade book from broker
     def getexecutedtradebookfrombroker(self):
         """Function to get complete order book from Finvasia Broker API."""
         try:
@@ -317,7 +416,7 @@ class InterfaceFinvasia:
             print(
                 f"Error occured while getting trade book from broker with Err: {e}")
 
-    # 18. Function to get Net Position (Live) from broker
+    # 19. Function to get Net Position (Live) from broker
     def getnetpositionfrombroker(self):
         """Function to get net position from Finvasia Broker API."""
         try:

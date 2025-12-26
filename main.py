@@ -11,3 +11,4 @@ if __name__ == "__main__":  # Main entry point
     handler.activatemastyersymboldownloader()
     handler.connecttobroker()
     handler.startengine()
+    handler.start()

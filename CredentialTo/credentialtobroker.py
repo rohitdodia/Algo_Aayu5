@@ -14,10 +14,10 @@ class CredentialFinvasia:
 class CredentialFyers:
     """Fyers API Credentials"""
 
-    client_id = 'JY54W40EMC-100'  # Client_id here refers to APP_ID of the created app
-    secret_key = 'A7IMMK20VJ'  # app_secret key which you got after creating the app
+    client_id = ''  # Client_id here refers to APP_ID of the created app
+    secret_key = ''  # app_secret key which you got after creating the app
     # redircet_uri you entered while creating APP.
-    redirect_uri = 'https://www.google.com/'
+    redirect_uri = ''
     # The grant_type always has to be "authorization_code"
     response_type = "code"  # The response_type always has to be "code"
     state = "sample"  # The state field here acts as a session manager.
