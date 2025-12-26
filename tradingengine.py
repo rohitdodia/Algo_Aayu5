@@ -220,65 +220,65 @@ class TradingEngine:
             print(F"Error occured while subscribing to live feeds : {e}")
 
     # 12. Function to filter on the basis of Cluster Option
-    # def applyinstrumentsfilter_fno(self):
-    #     """Filter FNO master data for EQ Instruments"""
-    #     try:
-    #         if self.df_fno is None or self.df_fno.empty:
-    #             raise ValueError("F&O dataframe is empty or not initiatlized")
+    def applyinstrumentsfilter_fno(self):
+        """Filter FNO master data for EQ Instruments"""
+        try:
+            if self.df_fno is None or self.df_fno.empty:
+                raise ValueError("F&O dataframe is empty or not initiatlized")
 
-    #         # Filter by instrument type
-    #         option = ['CE', 'PE']
+            # Filter by instrument type
+            option = ['CE', 'PE']
 
-    #         # Include Trading Symbol for Future list
-    #         future = ['XX']
+            # Include Trading Symbol for Future list
+            future = ['XX']
 
-    #         # combining both Option and Future data
-    #         self.df_fno = self.df_fno[
-    #             (
-    #                 self.df_fno['Symbol'].isin(settings.option_list) &
-    #                 self.df_fno['OptionType'].isin(option)
-    #             )
-    #             |
-    #             (
-    #                 self.df_fno['Symbol'].isin(settings.future_list) &
-    #                 self.df_fno['OptionType'].isin(future)
-    #             )
-    #         ]
+            # combining both Option and Future data
+            self.df_fno = self.df_fno[
+                (
+                    self.df_fno['Symbol'].isin(settings.option_list) &
+                    self.df_fno['OptionType'].isin(option)
+                )
+                |
+                (
+                    self.df_fno['Symbol'].isin(settings.future_list) &
+                    self.df_fno['OptionType'].isin(future)
+                )
+            ]
 
-    #         # Filter on expiry (optional but safer)
-    #         self.df_fno = self.df_fno[
-    #             self.df_fno['Expiry'].isin(settings.expiry_list)]
-    #         # rest index from 0 again
-    #         self.df_fno = self.df_fno.reset_index(drop=True)
+            # Filter on expiry (optional but safer)
+            self.df_fno = self.df_fno[
+                self.df_fno['Expiry'].isin(settings.expiry_list)]
+            # rest index from 0 again
+            self.df_fno = self.df_fno.reset_index(drop=True)
 
-    #     except ValueError as e:
-    #         print(F"Pattern matching failed : {e}")
+        except ValueError as e:
+            print(F"Pattern matching failed : {e}")
 
-    #     except KeyError as e:
-    #         print(F"Column: missing from dataframe:{e}")
+        except KeyError as e:
+            print(F"Column: missing from dataframe:{e}")
 
-    # # 13. Function to suscribe to live feeds from the cluster dataframe
-    # def subcribe_live_feed_fno(self) -> None:
-    #     """Subscribe to FNO live market feeds from Cluster dataframe"""
-    #     try:
-    #         if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
-    #             raise AttributeError(
-    #                 "This method must be accessed through an instance of the class")
+    # 13. Function to suscribe to live feeds from the cluster dataframe
+    def subcribe_live_feed_fno(self) -> None:
+        """Subscribe to FNO live market feeds from Cluster dataframe"""
+        try:
+            if not isinstance(self.__shoonyafinvasia, interfacefinvasia.InterfaceFinvasia):
+                raise AttributeError(
+                    "This method must be accessed through an instance of the class")
 
-    #         if (self.df_fno).empty:
-    #             raise ValueError("No data in F&O DataFrame")
+            if (self.df_fno).empty:
+                raise ValueError("No data in F&O DataFrame")
 
-    #         token_list = list(self.df_fno['Token'])
-    #         formatted_token_list = ["{}|{}".format(
-    #             'NFO', token) for token in token_list]
+            token_list = list(self.df_fno['Token'])
+            formatted_token_list = ["{}|{}".format(
+                'NFO', token) for token in token_list]
 
-    #         # This is bulk token streaming approach
-    #         self.__shoonyafinvasia.subscribetokentobroker(formatted_token_list)
-    #         # self.__shoonyafinvasia.subscribetokentobroker(
-    #         #     [f"NFO|,{token}" for token in self.df_fno['Token'].tolist()])
+            # This is bulk token streaming approach
+            self.__shoonyafinvasia.subscribetokentobroker(formatted_token_list)
+            # self.__shoonyafinvasia.subscribetokentobroker(
+            #     [f"NFO|,{token}" for token in self.df_fno['Token'].tolist()])
 
-    #     except (ValueError, KeyError) as e:
-    #         print(F"Error occured while subscribing to live feeds : {e}")
+        except (ValueError, KeyError) as e:
+            print(F"Error occured while subscribing to live feeds : {e}")
 
     # 14. Start strategy
     def start(self):
