@@ -5,6 +5,7 @@ import pandas as pd
 from BrokerAPI.FinvasiaAPI import interfacefinvasia
 from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia, MasterTypeVar
 from Utility.relativepath import Path
+from Utility.systemcol import SystemCol as cl
 import settings
 # from BrokerAPI.FyersAPI import InterfaceFyers
 
@@ -19,10 +20,9 @@ class TradingEngine:
         print("Welcome to Trading Engine...")
         # Process initialization here
         self.__shoonyafinvasia = interfacefinvasia.InterfaceFinvasia()
-        # self.__fyers = InterfaceFyers.InterfaceFyers()
-
         self.df_cash = pd.DataFrame()
-        # self.df_fno = pd.DataFrame()
+        self.df_fno = pd.DataFrame()
+        self.setup_system_trades()
 
     # 2. Function to connect to the broker API
 
@@ -293,7 +293,9 @@ class TradingEngine:
             # self.conditional_strategy()
             # self.conditional_stategy_doji()
             # self.conditional_stategy_hammer()
-            self.conditional_strategy_shootingstar()
+            # self.conditional_strategy_shootingstar()
+
+            self.start_trading()
 
     # 15. Conditional Strategy for Stocks and FNO
     def conditional_strategy(self):
@@ -465,3 +467,61 @@ class TradingEngine:
             print(f"Column missing in Shooting Star Strategy : {e}")
         except TypeError as e:
             print(f"Invalid type in Shooting Star Strategy : {e}")
+
+    # 19. Function - start trading
+    def start_trading(self):
+        """function to start trading activities"""
+        try:
+            print("trading started...")
+            self.take_new_entry()
+            self.take_exit()
+            self.update_pnl()
+
+        except Exception as e:
+            print(F"Error occured while trading...: {e}")
+
+    # 20. Function - taking new entry
+    def take_new_entry(self):
+        """function to take new entry"""
+        try:
+            id = 1
+            # work
+            print(F"New trade : {id}...")
+
+        except Exception as e:
+            print(F"Error occured while taking new entry...: {e}")
+
+    # 21. Function - taking exit
+    def take_exit(self):
+        """function to take exit"""
+        try:
+            id = 1
+            # work
+            print(F"Exit trade : {id}...")
+
+        except Exception as e:
+            print(F"Error occured while taking exit...: {e}")
+
+    # 22. Function - update P&L
+    def update_pnl(self):
+        """function to upadet P&L"""
+        try:
+            id = 1
+            # work
+            print(F"Updated exit trade Pnl : {id}...")
+
+        except Exception as e:
+            print(F"Error occured while updating Pnl...: {e}")
+
+    # 23. Function to setting up system trades with specific columns
+    def setup_system_trades(self):
+        """
+        Setup system to track trades
+        """
+        try:
+            col_name = [cl.STRATEGY, cl.TRADINGSYMBOL,
+                        cl.ENTRYPRICE, cl.EXITPRICE, cl.LTP, cl.PNL]
+            self.df_system = pd.DataFrame(columns=col_name)
+
+        except Exception as e:
+            print(F"Error occured while setting system trades.. : {e}")
