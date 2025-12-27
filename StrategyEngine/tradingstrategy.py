@@ -21,6 +21,7 @@ class StrategyEngine:
             print('reading trading strategy ...')
             col = [StrategyHeader.STRATEGYNAME, StrategyHeader.SPOT, StrategyHeader.EXPIRYDATE,
                    StrategyHeader.STRIKEPRICE, StrategyHeader.OPTIONTYPE, StrategyHeader.QUANTITY, StrategyHeader.ATMITMOTM]
+
             self.__df = pd.DataFrame(columns=col)  # _StrategyEngine__df
 
             self.read_input()
@@ -30,6 +31,13 @@ class StrategyEngine:
 
     def read_input(self):
         """Reading the trading strategy input"""
+        strategy_data = [['Bull Call Spread', 'NIFTY',
+                         '30-Dec-2025', '25700', 'CE', '100', 'ATM']]
+
+        for strategy in strategy_data:
+            self.__df.loc[len(self.__df)] = strategy
+
+        print(self.__df)
 
     def get_tradingstrategy(self):
         """Getting ready for trade strategy"""
