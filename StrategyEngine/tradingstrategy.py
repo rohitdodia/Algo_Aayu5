@@ -2,12 +2,26 @@
 import pandas as pd
 
 
+class StrategyHeader:
+    """ To support Strategy listing """
+    STRATEGYNAME = "Strategy"
+    SPOT = "Spot"
+    EXPIRYDATE = "ExpiryDate"
+    STRIKEPRICE = "StrikePrice"
+    OPTIONTYPE = "OptionType"
+    QUANTITY = "Qty"
+    ATMITMOTM = "AtmOtmItm"
+
+
 class StrategyEngine:
     """Class to support Algo Trading Strategy"""
 
     def __init__(self):
         try:
-            self.__df = pd.DataFrame()
+            print('reading trading strategy ...')
+            col = [StrategyHeader.STRATEGYNAME, StrategyHeader.SPOT, StrategyHeader.EXPIRYDATE,
+                   StrategyHeader.STRIKEPRICE, StrategyHeader.OPTIONTYPE, StrategyHeader.QUANTITY, StrategyHeader.ATMITMOTM]
+            self.__df = pd.DataFrame(columns=col)  # _StrategyEngine__df
 
             self.read_input()
 
@@ -16,7 +30,6 @@ class StrategyEngine:
 
     def read_input(self):
         """Reading the trading strategy input"""
-        pass
 
     def get_tradingstrategy(self):
         """Getting ready for trade strategy"""

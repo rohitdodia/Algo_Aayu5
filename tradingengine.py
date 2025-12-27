@@ -7,7 +7,8 @@ from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia, Mas
 from Utility.relativepath import Path
 from Utility.systemcol import SystemCol as cl
 import settings
-import StrategyEngine.tradingstrategy import StrategyEngine as ts
+from StrategyEngine.tradingstrategy import StrategyEngine
+
 
 # Trading Engine Class
 
@@ -22,7 +23,9 @@ class TradingEngine:
         self.__shoonyafinvasia = interfacefinvasia.InterfaceFinvasia()
         self.df_cash = pd.DataFrame()
         self.df_fno = pd.DataFrame()
+
         self.setup_system_trades()
+        self. __setting_strategy()
 
     # 2. Function to connect to the broker API
 
@@ -310,6 +313,7 @@ class TradingEngine:
                 for idx, row in self.__shoonyafinvasia.df_feed.iterrows():
                     # LTP > High --> cs 1
                     # ['TradingSymbol', 'Open', 'High', 'Low', 'Close', 'Ltp', 'Vol']
+                    _token = idx
                     _lpt = row['Ltp']
                     _high = row['High']
                     _low = row['Low']
@@ -531,11 +535,14 @@ class TradingEngine:
         """Creation of storage for trading strategies [falls under pre task]"""
         self.df_tradingstrategy = pd.DataFrame()
 
-    # 25. Function to load trading strategies from strategy Engine class
+        # calling from Function 25 and added in construtor
+        self.load_tradingstrategy()
 
+    # 25. Function to load trading strategies from strategy Engine class
     def load_tradingstrategy(self):
+        """Fetching Trading Strategy"""
         try:
-            _strategy_engine = ts()
+            _strategy_engine = StrategyEngine()
             self.df_tradingstrategy = _strategy_engine.get_tradingstrategy()
         except Exception as e:
             print(F"Error occured while calling Trading Strategy : {e}")
