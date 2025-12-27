@@ -7,7 +7,7 @@ from Master.MasterFinvasia.mastersymbolfinvasia import MasterSymbolFinvasia, Mas
 from Utility.relativepath import Path
 from Utility.systemcol import SystemCol as cl
 import settings
-# from BrokerAPI.FyersAPI import InterfaceFyers
+import StrategyEngine.tradingstrategy import StrategyEngine as ts
 
 # Trading Engine Class
 
@@ -525,3 +525,17 @@ class TradingEngine:
 
         except Exception as e:
             print(F"Error occured while setting system trades.. : {e}")
+
+    # 24. Function to Creation of storage for trading strategies
+    def __setting_strategy(self):
+        """Creation of storage for trading strategies [falls under pre task]"""
+        self.df_tradingstrategy = pd.DataFrame()
+
+    # 25. Function to load trading strategies from strategy Engine class
+
+    def load_tradingstrategy(self):
+        try:
+            _strategy_engine = ts()
+            self.df_tradingstrategy = _strategy_engine.get_tradingstrategy()
+        except Exception as e:
+            print(F"Error occured while calling Trading Strategy : {e}")
