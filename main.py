@@ -6,6 +6,16 @@ import tradingengine as te
 # https://github.com/Shoonya-Dev/ShoonyaApi-py
 # https://cdn.sanity.io/files/3n8bfe6i/production/ff63049ecd3370926c77fca0ed82f1e960273367.pdf
 
+# main.py --> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/main.py
+# tradingengine.py--> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/tradingengine.py
+# settings.py --> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/settings.py
+# relativepath.py --> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/Utility/relativepath.py
+# systemcol.py --> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/Utility/systemcol.py
+# tradingstrategy.py --> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/StrategyEngine/tradingstrategy.py
+# mastersymbolfinvasia.py --> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/Master/MasterFinvasia/mastersymbolfinvasia.py
+# interfacefinvasia.py--> https://raw.githubusercontent.com/rohitdodia/Algo_Aayu5/refs/heads/main/BrokerAPI/FinvasiaAPI/interfacefinvasia.py
+
+
 if __name__ == "__main__":  # Main entry point
     handler = te.TradingEngine()
     handler.activatemastyersymboldownloader()
